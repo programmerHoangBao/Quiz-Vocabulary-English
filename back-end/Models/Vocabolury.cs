@@ -22,7 +22,7 @@ namespace back_end.Models
         [Required]
         public Guid TopicId { get; set; }
         public Topic Topic { get; set; } = null!;
-        public DateTime Created { get; set; } = DateTime.Now;
+        public DateTime Created { get; set; } = DateTime.UtcNow; //Postgresql using DataTime.UtcNow
         public DateTime LastUpdated { get; set; }
         public bool IsDeleted { get; set; } = false;
 
