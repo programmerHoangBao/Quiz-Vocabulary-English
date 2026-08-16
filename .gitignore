@@ -1,0 +1,9 @@
+/docker-compose-sql-server.yml
+/back-end/Migrations
+/back-end/appsettings.json
+/back-end/appsettings.Development.json
+/back-end/bin
+/back-end/.vs
+/back-end/obj
+/test_api
+/docker-compose-rabbitMQ.yml

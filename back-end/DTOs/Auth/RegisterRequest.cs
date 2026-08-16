@@ -1,0 +1,21 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace back_end.DTOs.Auth
+{
+    public class RegisterRequest
+    {
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        [MaxLength(255, ErrorMessage = "Email must not exceed 255 characters.")]
+        public string Email {  get; set; }
+
+        [Required(ErrorMessage = "Password is required")]
+        [MinLength(6, ErrorMessage = "Password must be at least 6 characters.")]
+        [MaxLength(20, ErrorMessage = "Password must not exceed 20 characters.")]
+        public string Password { get; set; }
+
+        [Required(ErrorMessage = "Name is required")]
+        [MaxLength(30, ErrorMessage = "Name must not exceed 30 characters.")]
+        public string Name { get; set; }
+    }
+}
