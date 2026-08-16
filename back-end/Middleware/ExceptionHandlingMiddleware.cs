@@ -53,7 +53,11 @@ namespace back_end.Middleware
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unhandled exception occurred. Request: {Method} {Path}");
+                _logger.LogError(
+                    ex, "Unhandled exception occurred. Request: {Method} {Path}", 
+                    context.Request.Method,
+                    context.Request.Path
+                );
                 await HandleExceptionAsync(context, ex);
             }
         }

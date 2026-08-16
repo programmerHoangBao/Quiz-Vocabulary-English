@@ -19,7 +19,7 @@ namespace back_end.Models
         public int CorrectCount { get; set; } = 0;
         public int InCorrectCount { get; set; } = 0;
         public int Score { get; set; } = 0;
-        public DateTime Created { get; set; } = DateTime.Now;
+        public DateTime Created { get; set; } = DateTime.UtcNow; //Postgresql using DataTime.UtcNow
         public DateTime LastUpdated { get; set; }
         public bool IsDeleted { get; set; } = false;
 

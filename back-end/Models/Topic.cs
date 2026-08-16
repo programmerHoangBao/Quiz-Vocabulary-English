@@ -18,7 +18,7 @@ namespace back_end.Models
         [Required]
         public Guid FolderId { get; set; }
         public Folder Folder { get; set; } = null!;
-        public DateTime Created { get; set; } = DateTime.Now;
+        public DateTime Created { get; set; } = DateTime.UtcNow; //Postgresql using DataTime.UtcNow
         public DateTime LastUpdated { get; set; }
         public bool IsDeleted { get; set; } = false;
 

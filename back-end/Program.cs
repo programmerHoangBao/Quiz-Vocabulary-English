@@ -22,7 +22,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<DBContext>(options =>
-   options.UseSqlServer(
+   options.UseNpgsql(
        builder.Configuration.GetConnectionString("DefaultConnection")
    )
 );
