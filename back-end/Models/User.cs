@@ -23,6 +23,8 @@ namespace back_end.Models
         public string? OtpCode { get; set; }
         public DateTime? OtpExpiry { get; set; }
         public bool IsVerified { get; set; } = false;
+        [Required]
+        public RoleUser Role { get; set; } = RoleUser.User;
         public DateTime Created { get; set; } = DateTime.UtcNow; //Postgresql using DataTime.UtcNow
         public DateTime? LastUpdated { get; set; }
         public bool IsDeleted { get; set; } = false;

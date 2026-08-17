@@ -38,11 +38,14 @@ builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<S
 builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<RabbitMQSetting>>().Value);
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
 builder.Services.AddScoped<IPasswordHasherService, PasswordHasherService>();
 builder.Services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
+builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
 
 //Background Services
 builder.Services.AddHostedService<ExpiredUserCleanupService>();

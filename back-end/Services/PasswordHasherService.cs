@@ -26,5 +26,18 @@ namespace back_end.Services
             var hashedBytes = hmac.ComputeHash(passwordBytes);
             return Convert.ToBase64String(hashedBytes);
         }
+
+        public bool VerifyPassword(string password, string hashedPassword)
+        {
+            if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(hashedPassword))
+            {
+                return false;
+            }
+            string computedHash = HashPassword(password);
+
+            return CryptographicOperations.FixedTimeEquals(
+                Convert.FromBase64String(computedHash),
+                Convert.FromBase64String(hashedPassword));
+        }
     }
 }

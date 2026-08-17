@@ -1,12 +1,15 @@
 ﻿using back_end.Configurations.Settings;
 using back_end.DTOs;
-using back_end.DTOs.Auth;
+using back_end.DTOs.Auth.Requests;
+using back_end.DTOs.Auth.Responses;
+using back_end.DTOs.Projections;
 using back_end.Models;
 using back_end.RabbitMQ.Interfaces;
 using back_end.Records;
 using back_end.Repositories.Interfaces;
 using back_end.Services.Interfaces;
 using Microsoft.Extensions.Options;
+using Org.BouncyCastle.Utilities;
 
 namespace back_end.Services
 {
@@ -18,6 +21,10 @@ namespace back_end.Services
         private readonly AppSetting _appSetting;
         private readonly SecuritySetting _securitySetting;
         private readonly IRabbitMqPublisher _rabbitMqPublisher;
+        private readonly IJwtService _jwtService;
+        private readonly IRefreshTokenService _refreshTokenService;
+        private readonly IRefreshTokenRepository _refreshTokenRepository;
+        private readonly ILogger<AuthService> _logger;
 
         public AuthService(
             IUserRepository userRepository, 
@@ -25,7 +32,10 @@ namespace back_end.Services
             IEmailService emailService,
             IOptions<AppSetting> appOptions,
             IOptions<SecuritySetting> securityOptions,
-            IRabbitMqPublisher rabbitMqPublisher
+            IRabbitMqPublisher rabbitMqPublisher,
+            IJwtService jwtService,
+            IRefreshTokenService refreshTokenService,
+            IRefreshTokenRepository refreshTokenRepository
         ) 
         {
             _userRepository = userRepository;
@@ -34,6 +44,9 @@ namespace back_end.Services
             _appSetting = appOptions.Value;
             _securitySetting = securityOptions.Value;
             _rabbitMqPublisher = rabbitMqPublisher;
+            _jwtService = jwtService;
+            _refreshTokenService = refreshTokenService;
+            _refreshTokenRepository = refreshTokenRepository;
         }
 
         private static string GenerateOtp()
@@ -41,6 +54,51 @@ namespace back_end.Services
             var random = new Random();
             int otpValue = random.Next(0, 1000000);
             return otpValue.ToString("D6");
+        }
+
+        public async Task<ApiResponse<object?>> LoginAsync(LoginRequest req)
+        {
+            LoginUserProjection userLogin = await _userRepository.GetUserForLoginAsync(req.Email);
+            if (userLogin == null) // Case 1: User not found!
+            {
+                _logger.LogWarning("Login failed: User not found!");
+                return ApiResponse<object?>.Response(MessageCode.LoginFailed);
+            }
+            else if (string.IsNullOrEmpty(userLogin.Password)) // Case 2: Password == Null
+            {
+                _logger.LogWarning("Login failed: User login with google,...");
+                return ApiResponse<object?>.Response(MessageCode.LoginFailed);
+            }
+            // Case 3: Incorrect Password
+            bool validPassword = _passwordHasher.VerifyPassword(req.Password, userLogin.Password);
+            if (!validPassword)
+            {
+                _logger.LogWarning("Login failed: Incorrect password!");
+                return ApiResponse<object?>.Response(MessageCode.LoginFailed);
+            }
+            // Case 4: Login success
+            string accessToken = _jwtService.GenerateAccessToken(userLogin);
+            string refreshToken = _refreshTokenService.GenerateToken();
+            string refreshTokenHash = _refreshTokenService.HashToken(refreshToken);
+            var refreshTokenEntity = new RefreshToken
+            {
+                UserId = userLogin.Id,
+                TokenHash = refreshTokenHash,
+                CreatedAt = DateTime.UtcNow,
+                ExpiresAt = DateTime.UtcNow.AddDays(_securitySetting.RefreshTokenExpirationDays)
+            };
+            bool isSaveRefreshToken = await _refreshTokenRepository.AddAsync(refreshTokenEntity);
+            if (!isSaveRefreshToken)
+            {
+                _logger.LogWarning("Login failed: Save refresh token invalid!");
+                return ApiResponse<object?>.Response(MessageCode.LoginFailed);
+            }
+            LoginResponse loginResponse = new LoginResponse
+            {
+                AccessToken = accessToken,
+                ExpiresIn = _securitySetting.AccessTokenExpirationMinutes * 60,
+            };
+            return ApiResponse<object?>.Response(MessageCode.LoginSuccess, loginResponse);
         }
 
         public async Task<ApiResponse<object?>> RegisterAsync(RegisterRequest req)

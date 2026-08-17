@@ -1,4 +1,5 @@
-﻿using back_end.Models;
+﻿using back_end.DTOs.Projections;
+using back_end.Models;
 
 namespace back_end.Repositories.Interfaces
 {
@@ -8,5 +9,6 @@ namespace back_end.Repositories.Interfaces
         Task<bool> AddAsync(User user);
         Task<bool> DeleteAsync(User user);
         Task<bool> UpdateAsync(User user);
+        Task<LoginUserProjection> GetUserForLoginAsync(string email);
     }
 }

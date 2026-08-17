@@ -12,9 +12,11 @@
         public static readonly MessageCode RequestInvalid = new("E007", "Request is invalid!", StatusCodes.Status400BadRequest);
         public static readonly MessageCode RequestNotFound = new("E008", "Request not found!", StatusCodes.Status404NotFound);
         public static readonly MessageCode InternalServerError = new("E009", "Internal server error!", StatusCodes.Status500InternalServerError);
+        public static readonly MessageCode LoginFailed = new("E010", "The email or password incorrect!", StatusCodes.Status401Unauthorized);
 
         //The ResponseCode for a successful status starts with the character ‘S’ and has 4 characters, for example: S001.
         public static readonly MessageCode UserRegistered = new("S001", "User registered successfully!", StatusCodes.Status201Created);
         public static readonly MessageCode VerifySuccess = new("S002", "User verified successfully!", StatusCodes.Status200OK);
+        public static readonly MessageCode LoginSuccess = new("S003", "Login successfully!", StatusCodes.Status200OK);
     }
 }
