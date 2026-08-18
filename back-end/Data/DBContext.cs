@@ -13,6 +13,7 @@ namespace back_end.Data
         public DbSet<Topic> Topics { get; set; }
         public DbSet<Vocabolury> Vocaboluries { get; set; }
         public DbSet<VocabularyProgress> VocabularyProgresses { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -51,6 +52,15 @@ namespace back_end.Data
                     vp.UserId,
                     vp.VocabularyId
                 })
+                .IsUnique();
+
+            modelBuilder.Entity<RefreshToken>()
+                .HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<RefreshToken>()
+                .HasIndex(x => x.TokenHash)
                 .IsUnique();
         }
     }

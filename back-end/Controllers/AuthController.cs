@@ -1,4 +1,4 @@
-﻿using back_end.DTOs.Auth;
+﻿using back_end.DTOs.Auth.Requests;
 using back_end.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,6 +26,13 @@ namespace back_end.Controllers
         public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest req)
         {
             var result = await _authService.VerifyOtpAsync(req);
+            return StatusCode(result.MessageCode.HttpStatus, result);
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequest req)
+        {
+            var result = await _authService.LoginAsync(req);
             return StatusCode(result.MessageCode.HttpStatus, result);
         }
     }

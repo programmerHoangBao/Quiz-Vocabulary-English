@@ -15,7 +15,9 @@ namespace back_end.Models
         public string Meaning { get; set; }
         public PartOfSpeech PartOfSpeech { get; set; }
         [MaxLength(255)]
-        public string? Example { get; set; }
+        public string? ExampleEn { get; set; }
+        [MaxLength(255)]
+        public string? ExampleVn { get; set; }
         public string? IpaUk { get; set; }
         public string? IpaUs { get; set; }
         public string? ImageUrl { get; set; }
