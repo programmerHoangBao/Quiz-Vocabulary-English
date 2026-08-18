@@ -35,7 +35,8 @@ namespace back_end.Services
             IRabbitMqPublisher rabbitMqPublisher,
             IJwtService jwtService,
             IRefreshTokenService refreshTokenService,
-            IRefreshTokenRepository refreshTokenRepository
+            IRefreshTokenRepository refreshTokenRepository,
+            ILogger<AuthService> logger
         ) 
         {
             _userRepository = userRepository;
@@ -47,6 +48,7 @@ namespace back_end.Services
             _jwtService = jwtService;
             _refreshTokenService = refreshTokenService;
             _refreshTokenRepository = refreshTokenRepository;
+            _logger = logger;
         }
 
         private static string GenerateOtp()
