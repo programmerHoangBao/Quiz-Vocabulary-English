@@ -3,13 +3,13 @@ using back_end.DTOs;
 using back_end.DTOs.Auth.Requests;
 using back_end.DTOs.Auth.Responses;
 using back_end.DTOs.Projections;
+using back_end.Exceptions;
 using back_end.Models;
 using back_end.RabbitMQ.Interfaces;
 using back_end.Records;
 using back_end.Repositories.Interfaces;
 using back_end.Services.Interfaces;
 using Microsoft.Extensions.Options;
-using Org.BouncyCastle.Utilities;
 
 namespace back_end.Services
 {
@@ -17,7 +17,6 @@ namespace back_end.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasherService _passwordHasher;
-        private readonly IEmailService _emailService;
         private readonly AppSetting _appSetting;
         private readonly SecuritySetting _securitySetting;
         private readonly IRabbitMqPublisher _rabbitMqPublisher;
@@ -29,7 +28,6 @@ namespace back_end.Services
         public AuthService(
             IUserRepository userRepository, 
             IPasswordHasherService passwordHasher, 
-            IEmailService emailService,
             IOptions<AppSetting> appOptions,
             IOptions<SecuritySetting> securityOptions,
             IRabbitMqPublisher rabbitMqPublisher,
@@ -41,7 +39,6 @@ namespace back_end.Services
         {
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
-            _emailService = emailService;
             _appSetting = appOptions.Value;
             _securitySetting = securityOptions.Value;
             _rabbitMqPublisher = rabbitMqPublisher;
@@ -58,25 +55,22 @@ namespace back_end.Services
             return otpValue.ToString("D6");
         }
 
-        public async Task<ApiResponse<object?>> LoginAsync(LoginRequest req)
+        public async Task<ApiResponse<LoginResponse>> LoginAsync(LoginRequest req)
         {
-            LoginUserProjection userLogin = await _userRepository.GetUserForLoginAsync(req.Email);
+            LoginUserProjection? userLogin = await _userRepository.GetUserForLoginAsync(req.Email);
             if (userLogin == null) // Case 1: User not found!
             {
-                _logger.LogWarning("Login failed: User not found!");
-                return ApiResponse<object?>.Response(MessageCode.LoginFailed);
+                throw new BusinessException(ErrorRecord.UserNotFound);
             }
             else if (string.IsNullOrEmpty(userLogin.Password)) // Case 2: Password == Null
             {
-                _logger.LogWarning("Login failed: User login with google,...");
-                return ApiResponse<object?>.Response(MessageCode.LoginFailed);
+                throw new BusinessException(ErrorRecord.LoginFailed);
             }
             // Case 3: Incorrect Password
             bool validPassword = _passwordHasher.VerifyPassword(req.Password, userLogin.Password);
             if (!validPassword)
             {
-                _logger.LogWarning("Login failed: Incorrect password!");
-                return ApiResponse<object?>.Response(MessageCode.LoginFailed);
+                throw new BusinessException(ErrorRecord.LoginFailed);
             }
             // Case 4: Login success
             string accessToken = _jwtService.GenerateAccessToken(userLogin);
@@ -86,39 +80,37 @@ namespace back_end.Services
             {
                 UserId = userLogin.Id,
                 TokenHash = refreshTokenHash,
-                CreatedAt = DateTime.UtcNow,
                 ExpiresAt = DateTime.UtcNow.AddDays(_securitySetting.RefreshTokenExpirationDays)
             };
             bool isSaveRefreshToken = await _refreshTokenRepository.AddAsync(refreshTokenEntity);
             if (!isSaveRefreshToken)
             {
-                _logger.LogWarning("Login failed: Save refresh token invalid!");
-                return ApiResponse<object?>.Response(MessageCode.LoginFailed);
+                throw new BusinessException(ErrorRecord.LoginFailed);
             }
             LoginResponse loginResponse = new LoginResponse
             {
                 AccessToken = accessToken,
                 ExpiresIn = _securitySetting.AccessTokenExpirationMinutes * 60,
             };
-            return ApiResponse<object?>.Response(MessageCode.LoginSuccess, loginResponse);
+            return ApiResponse<LoginResponse>.MessageResponse(MessageRecord.LoginSuccess, loginResponse);
         }
 
         public async Task<ApiResponse<object?>> RegisterAsync(RegisterRequest req)
         { 
-            User existUser = await this._userRepository.GetUserByEmailAsync(req.Email);
+            User? existUser = await this._userRepository.GetUserByEmailAsync(req.Email);
             string otp = GenerateOtp();
             DateTime otpExpiry = DateTime.UtcNow.AddMinutes(_securitySetting.OtpExpiryMinutes);
             string hashedPassword = _passwordHasher.HashPassword(req.Password);
             // Case 1: User exists and isn't verified
             if (existUser != null && !existUser.IsVerified)
             {
-                return ApiResponse<object?>.Response(MessageCode.UserIsNotVerify);
+                throw new BusinessException(ErrorRecord.UserIsNotVerify);
             }
 
             // Case 2: User exists and is verified
             if (existUser != null && existUser.IsVerified)
             {
-                return ApiResponse<object?>.Response(MessageCode.UserExist);
+                throw new BusinessException(ErrorRecord.UserExist);
             }
 
             // Case 3: User does not exist, create a new user, isVerified is false, and send OTP email
@@ -143,30 +135,30 @@ namespace back_end.Services
                     AppName: _appSetting.Name
                 );
                 await _rabbitMqPublisher.PublishAsync(message, "send_otp_email");
-                return ApiResponse<object?>.Response(MessageCode.UserRegistered);
+                return ApiResponse<object?>.MessageResponse(MessageRecord.UserRegistered);
             }
             else
             {
-                return ApiResponse<object?>.Response(MessageCode.RegisterFailed);
+                return ApiResponse<object?>.ErrorResponse(ErrorRecord.RegisterFailed);
             }
         }
 
         public async Task<ApiResponse<object?>> VerifyOtpAsync(VerifyOtpRequest req)
         {
-            User existUser = await this._userRepository.GetUserByEmailAsync(req.Email);
+            User? existUser = await this._userRepository.GetUserByEmailAsync(req.Email);
             // Case 1: User does not exist
             if (existUser == null)
             {
-                return ApiResponse<object?>.Response(MessageCode.UserNotFound);
+                throw new BusinessException(ErrorRecord.UserNotFound);
             }
             else if (existUser.IsVerified) // Case 2: User exists but is already verified
             {
-                return ApiResponse<object?>.Response(MessageCode.UserExist);
+                throw new BusinessException(ErrorRecord.UserExist);
             }
             // Case 3: Otp is expired
             if (existUser.OtpExpiry < DateTime.UtcNow)
             {
-                return ApiResponse<object?>.Response(MessageCode.OtpExpiry);
+                return ApiResponse<object?>.ErrorResponse(ErrorRecord.OtpExpiry);
             }
             // Case 4: Otp is valid and user is verified successfully
             if (existUser.OtpCode == req.OtpCode)
@@ -177,10 +169,10 @@ namespace back_end.Services
                 bool isUpdated = await this._userRepository.UpdateAsync(existUser);
                 if (isUpdated)
                 {
-                    return ApiResponse<object?>.Response(MessageCode.VerifySuccess);
+                    return ApiResponse<object?>.MessageResponse(MessageRecord.VerifySuccess);
                 }
             }
-            return ApiResponse<object?>.Response(MessageCode.VerifyFailed);
+            throw new BusinessException(ErrorRecord.VerifyFailed);
         }
     }
 }

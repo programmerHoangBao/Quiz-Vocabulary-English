@@ -10,10 +10,14 @@ namespace back_end.RabbitMQ
     {
         private readonly RabbitMQSetting _rabbitMqSetting;
         private readonly ILogger<RabbitMqPublisher> _logger;
-        public RabbitMqPublisher(IOptions<RabbitMQSetting> options)
+
+        public RabbitMqPublisher(IOptions<RabbitMQSetting> options, ILogger<RabbitMqPublisher> logger)
         {
-            _rabbitMqSetting = options.Value;
+            _rabbitMqSetting = options?.Value ?? throw new ArgumentNullException(nameof(options));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
+
         public async Task PublishAsync<T>(T message, string queueName)
         {
             try

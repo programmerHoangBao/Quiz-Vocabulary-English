@@ -29,12 +29,17 @@ namespace back_end.Repositories
             return result > 0;
         }
 
-        public async Task<User> GetUserByEmailAsync(string email)
+        public async Task<User?> GetUserByEmailAsync(string email)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
-        public async Task<LoginUserProjection> GetUserForLoginAsync(string email)
+        public async Task<User?> GetUserByIdAndIsDeleteFalse(Guid userId)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted);
+        }
+
+        public async Task<LoginUserProjection?> GetUserForLoginAsync(string email)
         {
             return await _context.Users
                 .AsNoTracking()

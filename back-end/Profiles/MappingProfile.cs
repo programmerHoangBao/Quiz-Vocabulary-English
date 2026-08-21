@@ -1,0 +1,17 @@
+﻿using AutoMapper;
+using back_end.DTOs.Folder.Requests;
+using back_end.DTOs.Folder.Responses;
+using back_end.Models;
+
+namespace back_end.Profiles
+{
+    public class MappingProfile : Profile
+    {
+        public MappingProfile()
+        {
+            CreateMap<CreateFolderRequest, Folder>();
+            CreateMap<Folder, FolderResponse>();
+            CreateMap<UpdateFolderRequest, Folder>();
+        }
+    }
+}

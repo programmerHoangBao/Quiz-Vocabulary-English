@@ -1,18 +1,19 @@
 ﻿using back_end.Enums;
+using back_end.Models.Interfaces;
 using System.ComponentModel.DataAnnotations;
 
 namespace back_end.Models
 {
-    public class Vocabolury
+    public class Vocabolury : IAuditable
     {
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
         [Required]
         [MaxLength(255)]
-        public string Word { get; set; }
+        public string Word { get; set; } = string.Empty;
         [Required]
         [MaxLength(255)]
-        public string Meaning { get; set; }
+        public string Meaning { get; set; } = string.Empty;
         public PartOfSpeech PartOfSpeech { get; set; }
         [MaxLength(255)]
         public string? ExampleEn { get; set; }
@@ -24,9 +25,9 @@ namespace back_end.Models
         [Required]
         public Guid TopicId { get; set; }
         public Topic Topic { get; set; } = null!;
-        public DateTime Created { get; set; } = DateTime.UtcNow; //Postgresql using DataTime.UtcNow
+        public DateTime Created { get; set; }
         public DateTime LastUpdated { get; set; }
-        public bool IsDeleted { get; set; } = false;
+        public bool IsDeleted { get; set; }
 
         public ICollection<VocabularyProgress> VocabularyProgresses { get; set; } = new List<VocabularyProgress>();
     }
