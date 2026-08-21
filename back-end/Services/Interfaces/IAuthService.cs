@@ -8,6 +8,6 @@ namespace back_end.Services.Interfaces
     {
         Task<ApiResponse<object?>> RegisterAsync(RegisterRequest req);
         Task<ApiResponse<object?>> VerifyOtpAsync(VerifyOtpRequest req);
-        Task<ApiResponse<object?>> LoginAsync(LoginRequest req);
+        Task<ApiResponse<LoginResponse>> LoginAsync(LoginRequest req);
     }
 }

@@ -21,8 +21,8 @@ namespace back_end.Configurations
                                 : x.ErrorMessage)
                         .ToList();
 
-                    var response = ApiResponse<List<string>>.Response(
-                        MessageCode.RequestInvalid,
+                    var response = ApiResponse<List<string>>.ErrorResponse(
+                        ErrorRecord.RequestInvalid,
                         errors
                     );
 

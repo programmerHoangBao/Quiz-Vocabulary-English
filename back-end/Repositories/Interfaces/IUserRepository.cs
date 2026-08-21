@@ -5,10 +5,11 @@ namespace back_end.Repositories.Interfaces
 {
     public interface IUserRepository
     {
-        Task<User> GetUserByEmailAsync(string email);
+        Task<User?> GetUserByEmailAsync(string email);
         Task<bool> AddAsync(User user);
         Task<bool> DeleteAsync(User user);
         Task<bool> UpdateAsync(User user);
-        Task<LoginUserProjection> GetUserForLoginAsync(string email);
+        Task<LoginUserProjection?> GetUserForLoginAsync(string email);
+        Task<User?> GetUserByIdAndIsDeleteFalse(Guid userId);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using back_end.DTOs;
+using back_end.Exceptions;
 using back_end.Records;
 using System.Text.Json;
 
@@ -16,30 +17,24 @@ namespace back_end.Middleware
         }
         private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
-            var statusCode = exception switch
+            ErrorRecord errorRecord = exception switch
             {
-                ArgumentException => StatusCodes.Status400BadRequest,
+                BusinessException businessException =>
+                    businessException.ErrorRecord,
 
-                KeyNotFoundException => StatusCodes.Status404NotFound,
+                ArgumentException =>
+                    ErrorRecord.RequestInvalid,
 
-                _ => StatusCodes.Status500InternalServerError
-            };
-
-            MessageCode messageCode = statusCode switch
-            {
-                StatusCodes.Status400BadRequest =>
-                    MessageCode.RequestInvalid,
-
-                StatusCodes.Status404NotFound =>
-                    MessageCode.RequestNotFound,
+                KeyNotFoundException =>
+                    ErrorRecord.RequestNotFound,
 
                 _ =>
-                    MessageCode.InternalServerError
+                    ErrorRecord.InternalServerError
             };
 
-            var response = ApiResponse<object?>.Response(messageCode);
+            var response = ApiResponse<object?>.ErrorResponse(errorRecord);
 
-            context.Response.StatusCode = statusCode;
+            context.Response.StatusCode = errorRecord.HttpStatus;
             context.Response.ContentType = "application/json";
 
             await context.Response.WriteAsync(

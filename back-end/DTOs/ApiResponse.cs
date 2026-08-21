@@ -4,19 +4,31 @@ namespace back_end.DTOs
 {
     public class ApiResponse<T>
     {
-        public bool Success { get; set; }
-        public MessageCode MessageCode { get; set; }
+        public bool IsSuccess { get; set; }
+        public string ResponseCode { get; set; } = string.Empty;
+        public int HttpStatusCode { get; set; }
+        public string Message { get; set; } = string.Empty;
         public T? Data { get; set; }
-        public static ApiResponse<T> Response(
-            MessageCode messageCode,
-            T? data = default)
+        public static ApiResponse<T> ErrorResponse(ErrorRecord errorRecord, T? data = default)
         {
-            bool success = !string.IsNullOrEmpty(messageCode.ResponseCode)
-                           && messageCode.ResponseCode[0] != 'E';
             return new ApiResponse<T>
             {
-                Success = success,
-                MessageCode = messageCode,
+                IsSuccess = false,
+                ResponseCode = errorRecord.ResponseCode,
+                HttpStatusCode = errorRecord.HttpStatus,
+                Message = errorRecord.Message,
+                Data = data
+            };
+        }
+
+        public static ApiResponse<T> MessageResponse(MessageRecord messageRecord, T? data = default)
+        {
+            return new ApiResponse<T>
+            {
+                IsSuccess = true,
+                ResponseCode = messageRecord.ResponseCode,
+                HttpStatusCode = messageRecord.HttpStatus,
+                Message = messageRecord.Message,
                 Data = data
             };
         }

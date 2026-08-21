@@ -19,21 +19,21 @@ namespace back_end.Controllers
         public async Task<IActionResult> Register([FromBody] RegisterRequest req)
         {
             var result = await _authService.RegisterAsync(req);
-            return StatusCode(result.MessageCode.HttpStatus, result); // StatusCode is now accessible
+            return StatusCode(result.HttpStatusCode, result); // StatusCode is now accessible
         }
 
         [HttpPost("verify-otp")]
         public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest req)
         {
             var result = await _authService.VerifyOtpAsync(req);
-            return StatusCode(result.MessageCode.HttpStatus, result);
+            return StatusCode(result.HttpStatusCode, result);
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest req)
         {
             var result = await _authService.LoginAsync(req);
-            return StatusCode(result.MessageCode.HttpStatus, result);
+            return StatusCode(result.HttpStatusCode, result);
         }
     }
 }
