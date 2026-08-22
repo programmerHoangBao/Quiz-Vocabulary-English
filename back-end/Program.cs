@@ -50,10 +50,13 @@ builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<S
 builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<SmtpSetting>>().Value);
 builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<RabbitMQSetting>>().Value);
 
+//Add scoped for repository
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped<IFolderRepository, FolderRepository>();
+builder.Services.AddScoped<ITopicRepository, TopicRepository>();
 
+//Add scoped for services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
 builder.Services.AddScoped<IPasswordHasherService, PasswordHasherService>();
@@ -62,6 +65,7 @@ builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IFolderService, FolderService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<ITopicService, TopicService>();
 
 //Background Services
 builder.Services.AddHostedService<ExpiredUserCleanupService>();

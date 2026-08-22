@@ -2,7 +2,6 @@
 using back_end.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
 
 namespace back_end.Controllers
 {

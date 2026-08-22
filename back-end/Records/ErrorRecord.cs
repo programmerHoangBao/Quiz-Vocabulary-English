@@ -15,10 +15,14 @@
         public static readonly ErrorRecord LoginFailed = new("E010", "The email or password incorrect!", StatusCodes.Status401Unauthorized);
         public static readonly ErrorRecord Unauthorized = new("E011", "User does not have unauthorization!", StatusCodes.Status401Unauthorized);
         public static readonly ErrorRecord Forbidden = new("E012", "User does not have permission!", StatusCodes.Status403Forbidden);
-        public static readonly ErrorRecord CreateFolderFailed = new("E012", "Created folder failed!", StatusCodes.Status400BadRequest);
-        public static readonly ErrorRecord UpdateFolderFailed = new("E013", "Updated folder failed!", StatusCodes.Status400BadRequest);
-        public static readonly ErrorRecord SoftDeleteFailed = new("E014", "Delete folder failed!", StatusCodes.Status400BadRequest);
+        public static readonly ErrorRecord FolderCreateFailed = new("E012", "Created folder failed!", StatusCodes.Status400BadRequest);
+        public static readonly ErrorRecord FolderUpdateFailed = new("E013", "Updated folder failed!", StatusCodes.Status400BadRequest);
+        public static readonly ErrorRecord FolderDeleteFailed = new("E014", "Delete folder failed!", StatusCodes.Status400BadRequest);
         public static readonly ErrorRecord NoData = new("E015", "No data!", StatusCodes.Status404NotFound);
         public static readonly ErrorRecord FolderNotFound = new("E016", "Folder not found!", StatusCodes.Status404NotFound);
+        public static readonly ErrorRecord TopicCreateFailed = new("E017", "Topic create failed!", StatusCodes.Status400BadRequest);
+        public static readonly ErrorRecord TopicUpdateFailed = new("E018", "Topic update failed!", StatusCodes.Status400BadRequest);
+        public static readonly ErrorRecord TopicDeleteFailed = new("E018", "Topic delete failed!", StatusCodes.Status400BadRequest);
+        public static readonly ErrorRecord TopicNotFound = new("E019", "Topic not found!", StatusCodes.Status404NotFound);
     }
 }

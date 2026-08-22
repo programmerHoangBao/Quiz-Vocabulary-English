@@ -8,18 +8,32 @@ namespace back_end.Repositories
     public class FolderRepository : IFolderRepository
     {
         private readonly DBContext _context;
-        private readonly ILogger<FolderRepository> _logger;
-        public FolderRepository(DBContext context, ILogger<FolderRepository> logger)
+        public FolderRepository(DBContext context)
         {
             _context = context;
-            _logger = logger;
         }
 
         public async Task<bool> AddAsync(Folder folder)
         {
-            await _context.Folders.AddAsync(folder);
-            var result = await _context.SaveChangesAsync();
-            return result > 0;
+            await using var transaction =
+                await _context.Database.BeginTransactionAsync();
+            try
+            {
+                await _context.Folders.AddAsync(folder);
+                var result = await _context.SaveChangesAsync();
+                if (result <= 0)
+                {
+                    await transaction.RollbackAsync();
+                    return false;
+                }
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<Folder?> GetFolderById(Guid folderId)
@@ -45,22 +59,55 @@ namespace back_end.Repositories
 
         public async Task<bool> SoftDelete(Guid folderId)
         {
-            Folder? folder = await _context.Folders.FirstOrDefaultAsync(f => f.Id == folderId && !f.IsDeleted);
-            if (folder == null)
+            await using var transaction =
+                await _context.Database.BeginTransactionAsync();
+            try
             {
-                _logger.LogWarning("Folder not found!");
-                return false;
+                Folder? folder = await _context.Folders
+                    .FirstOrDefaultAsync(f => f.Id == folderId && !f.IsDeleted);
+                if (folder == null)
+                {
+                    await transaction.RollbackAsync();
+                    return false;
+                }
+                folder.IsDeleted = true;
+                var result = await _context.SaveChangesAsync();
+                if (result <= 0)
+                {
+                    await transaction.RollbackAsync();
+                    return false;
+                }
+                await transaction.CommitAsync();
+                return true;
             }
-            folder.IsDeleted = true;
-            await _context.SaveChangesAsync();
-            return true;
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<bool> Update(Folder folder)
         {
-            _context.Folders.Update(folder);
-            var result = await _context.SaveChangesAsync();
-            return result > 0;
+            await using var transaction =
+                await _context.Database.BeginTransactionAsync();
+            try
+            {
+                _context.Folders.Update(folder);
+                var result = await _context.SaveChangesAsync();
+                if (result <= 0)
+                {
+                    await transaction.RollbackAsync();
+                    return false;
+                }
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
     }
 }

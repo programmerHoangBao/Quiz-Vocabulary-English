@@ -42,22 +42,32 @@ namespace back_end.Services
         {
             using var scope = _scopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<DBContext>();
+            await using var transaction =
+                await dbContext.Database.BeginTransactionAsync();
 
             var now = DateTime.UtcNow;
 
-            var expiredUsers = await dbContext.Users
+            try
+            {
+                var expiredUsers = await dbContext.Users
                 .Where(user => !user.IsVerified && user.OtpExpiry < now)
                 .ToListAsync(cancellationToken);
 
-            if (expiredUsers.Count == 0)
-            {
-                return;
+                if (expiredUsers.Count == 0)
+                {
+                    return;
+                }
+
+                dbContext.Users.RemoveRange(expiredUsers);
+                await dbContext.SaveChangesAsync(cancellationToken);
+                _logger.LogInformation("Deleted {Count} expired unverified user(s).", expiredUsers.Count);
+                await transaction.CommitAsync();
             }
-
-            dbContext.Users.RemoveRange(expiredUsers);
-            await dbContext.SaveChangesAsync(cancellationToken);
-
-            _logger.LogInformation("Deleted {Count} expired unverified user(s).", expiredUsers.Count);
+            catch
+            {
+                await transaction.CommitAsync();
+                throw;
+            }
         }
     }
 }
