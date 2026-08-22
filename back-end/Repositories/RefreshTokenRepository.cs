@@ -14,9 +14,25 @@ namespace back_end.Repositories
 
         public async Task<bool> AddAsync(RefreshToken refreshToken)
         {
-            await _context.AddAsync(refreshToken);
-            var result = await _context.SaveChangesAsync();
-            return result > 0;
+            await using var transaction =
+                await _context.Database.BeginTransactionAsync();
+            try
+            {
+                await _context.AddAsync(refreshToken);
+                var result = await _context.SaveChangesAsync();
+                if (result <= 0)
+                {
+                    await transaction.RollbackAsync();
+                    return false;
+                }
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
     }
 }

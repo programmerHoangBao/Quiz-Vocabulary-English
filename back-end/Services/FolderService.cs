@@ -14,7 +14,6 @@ namespace back_end.Services
     {
         private readonly IFolderRepository _folderRepository;
         private readonly IUserRepository _userRepository;
-        private readonly ILogger<FolderService> _logger;
         private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUserService;
 
@@ -28,7 +27,6 @@ namespace back_end.Services
         {
             _folderRepository = folderRepository;
             _userRepository = userRepository;
-            _logger = logger;
             _mapper = mapper;
             _currentUserService = currentUserService;
         }
@@ -50,10 +48,10 @@ namespace back_end.Services
             bool isCreated = await _folderRepository.AddAsync(newFolder);
             if (!isCreated)
             {
-                throw new BusinessException(ErrorRecord.CreateFolderFailed);
+                throw new BusinessException(ErrorRecord.FolderCreateFailed);
             }
             FolderResponse response = _mapper.Map<FolderResponse>(newFolder);
-            return ApiResponse<FolderResponse>.MessageResponse(MessageRecord.CreateFolderSuccess, response);
+            return ApiResponse<FolderResponse>.MessageResponse(MessageRecord.FolderCreateSuccess, response);
         }
 
         public async Task<ApiResponse<FolderResponse>> GetFolderById(Guid folderId)
@@ -143,9 +141,9 @@ namespace back_end.Services
             bool isSoftDelete = await _folderRepository.SoftDelete(folderId);
             if (!isSoftDelete)
             {
-                throw new BusinessException(ErrorRecord.SoftDeleteFailed);
+                throw new BusinessException(ErrorRecord.FolderDeleteFailed);
             }
-            return ApiResponse<object?>.MessageResponse(MessageRecord.SoftDeleteSuccess);
+            return ApiResponse<object?>.MessageResponse(MessageRecord.FolderDeleteSuccess);
         }
 
         public async Task<ApiResponse<object?>> UpdateFolder(UpdateFolderRequest req)
@@ -168,9 +166,9 @@ namespace back_end.Services
             bool isUpdated = await _folderRepository.Update(folder);
             if (!isUpdated)
             {
-                throw new BusinessException(ErrorRecord.UpdateFolderFailed);
+                throw new BusinessException(ErrorRecord.FolderUpdateFailed);
             }
-            return ApiResponse<object?>.MessageResponse(MessageRecord.UpdateFolderSuccess);
+            return ApiResponse<object?>.MessageResponse(MessageRecord.FolderUpdateSuccess);
         }
     }
 }
