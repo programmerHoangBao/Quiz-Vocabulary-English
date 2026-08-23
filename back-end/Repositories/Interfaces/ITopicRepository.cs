@@ -14,5 +14,6 @@ namespace back_end.Repositories.Interfaces
             int pageSize
         );
         Task<Guid?> GetOwnerIdByIdAsync(Guid id);
+        Task<bool> IsTopicBelongsToUserAsync(Guid topicId, Guid userId);
     }
 }

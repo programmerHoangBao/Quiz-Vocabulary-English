@@ -15,7 +15,6 @@ namespace back_end.Models
         public string? Description { get; set; }
         public Visibility Visibility { get; set; } = Visibility.Private;
         public int CountLearn { get; set; } = 0;
-        public string? imageUrl { get; set; }
 
         [Required]
         public Guid UserId { get; set; }

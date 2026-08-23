@@ -7,6 +7,7 @@ using back_end.Models;
 using back_end.Records;
 using back_end.Repositories.Interfaces;
 using back_end.Services.Interfaces;
+using Org.BouncyCastle.Ocsp;
 
 namespace back_end.Services
 {
@@ -61,11 +62,17 @@ namespace back_end.Services
             Guid? viewerId = _currentUserService.UserId ??
                 throw new BusinessException(ErrorRecord.Unauthorized);
 
-            Topic? topic = await _topicRepository.GetTopicByIdAsync(id) ??
+            Topic? topic = await _topicRepository.GetTopicByIdAsync(id);
+            if (topic == null || topic.IsDeleted)
+            {
                 throw new BusinessException(ErrorRecord.TopicNotFound);
+            }
+            bool isTopicBelongsToUser = await _topicRepository.IsTopicBelongsToUserAsync(
+                id, 
+                viewerId.Value
+            );
 
-            if (topic.Visibility == Enums.Visibility.Private 
-                && topic.Folder.UserId != viewerId)
+            if (!isTopicBelongsToUser)
             {
                 throw new BusinessException(ErrorRecord.Forbidden);
             }
@@ -124,11 +131,16 @@ namespace back_end.Services
             Guid? currentUserId = _currentUserService.UserId ??
                  throw new BusinessException(ErrorRecord.Unauthorized);
             Topic? topic = await _topicRepository.GetTopicByIdAsync(id);
-            if (topic == null)
+            if (topic == null || topic.IsDeleted)
             {
                 throw new BusinessException(ErrorRecord.TopicNotFound);
             }
-            else if (topic.Folder.UserId != currentUserId)
+            bool isTopicBelongsToUser = await _topicRepository.IsTopicBelongsToUserAsync(
+                id,
+                currentUserId.Value
+            );
+
+            if (!isTopicBelongsToUser)
             {
                 throw new BusinessException(ErrorRecord.Forbidden);
             }
@@ -145,11 +157,15 @@ namespace back_end.Services
             Guid? currentUserId = _currentUserService.UserId ??
                 throw new BusinessException(ErrorRecord.Unauthorized);
             Topic? topic = await _topicRepository.GetTopicByIdAsync(req.Id);
-            if (topic == null)
+            if (topic == null || topic.IsDeleted)
             {
                 throw new BusinessException(ErrorRecord.TopicNotFound);
             }
-            else if (topic.Folder.UserId != currentUserId)
+            bool isTopicBelongsToUser = await _topicRepository.IsTopicBelongsToUserAsync(
+                req.Id,
+                currentUserId.Value
+            );
+            if (!isTopicBelongsToUser)
             {
                 throw new BusinessException(ErrorRecord.Forbidden);
             }

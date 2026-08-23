@@ -55,6 +55,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped<IFolderRepository, FolderRepository>();
 builder.Services.AddScoped<ITopicRepository, TopicRepository>();
+builder.Services.AddScoped<IVocaboluryRepository, VocaboluryRepository>();
 
 //Add scoped for services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -66,6 +67,8 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IFolderService, FolderService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<ITopicService, TopicService>();
+builder.Services.AddScoped<IVocaboluryService, VocaboluryService>();
+builder.Services.AddScoped<IFileService, FileService>();
 
 //Background Services
 builder.Services.AddHostedService<ExpiredUserCleanupService>();
