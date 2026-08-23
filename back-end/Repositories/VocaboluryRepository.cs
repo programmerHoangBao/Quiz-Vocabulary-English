@@ -2,26 +2,24 @@
 using back_end.Models;
 using back_end.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Org.BouncyCastle.Asn1.X509;
 
 namespace back_end.Repositories
 {
-    public class TopicRepository : ITopicRepository
+    public class VocaboluryRepository : IVocaboluryRepository
     {
         private readonly DBContext _context;
-
-        public TopicRepository(DBContext context)
+        public VocaboluryRepository(DBContext context)
         {
             _context = context;
         }
 
-        public async Task<bool> AddAsync(Topic topic)
+        public async Task<bool> AddAsync(Vocabolury vocabolury)
         {
             await using var transaction =
                 await _context.Database.BeginTransactionAsync();
             try
             {
-                await _context.Topics.AddAsync(topic);
+                await _context.Vocaboluries.AddAsync(vocabolury);
                 var result = await _context.SaveChangesAsync();
                 if (result <= 0)
                 {
@@ -38,37 +36,52 @@ namespace back_end.Repositories
             }
         }
 
-        public async Task<Guid?> GetOwnerIdByIdAsync(Guid id)
+        public async Task<int> AddRangeAsync(List<Vocabolury> vocaboluries)
         {
-            return await _context.Topics
-                .Where(t => t.Id == id && !t.IsDeleted)
-                .Select(t => (Guid?)t.Folder.UserId)
-                .FirstOrDefaultAsync();
+            await using var transaction =
+                await _context.Database.BeginTransactionAsync();
+            try
+            {
+                await _context.AddRangeAsync(vocaboluries);
+                var result = await _context.SaveChangesAsync();
+                if (result <= 0)
+                {
+                    await transaction.RollbackAsync();
+                    return 0;
+                }
+                await transaction.CommitAsync();
+                return result;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
-        public async Task<Topic?> GetTopicByIdAsync(Guid id)
-        {
-            return await _context.Topics.FirstOrDefaultAsync(t => t.Id == id);
-        }
-
-        public async Task<(List<Topic> Topics, int TotalItems)> GetTopicsByFolderIdAsync(
-            Guid folderId,
-            int pageNumber,
+        public async Task<(List<Vocabolury> vocaboluries, int TotalItems)> GetVocaboluriesByTopicId(
+            Guid topicId, 
+            int pageNumber, 
             int pageSize
         )
         {
-            IQueryable<Topic> query = _context.Topics
-                .Where(t => t.FolderId == folderId && !t.IsDeleted)
-                .OrderByDescending(f => f.Created);
+            IQueryable<Vocabolury> query = _context.Vocaboluries
+                .Where(v => v.TopicId == topicId && !v.IsDeleted)
+                .OrderByDescending(v => v.Created);
 
             int totalItems = await query.CountAsync();
 
-            List<Topic> topics = await query
+            List<Vocabolury> vocaboluries = await query
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
-            return (topics, totalItems);
+            return (vocaboluries, totalItems);
+        }
+
+        public async Task<Vocabolury?> GetVocaboluryByIdAsync(Guid id)
+        {
+            return await _context.Vocaboluries.FirstOrDefaultAsync(v => v.Id == id);
         }
 
         public async Task<bool> SoftDeleteByIdAsync(Guid id)
@@ -77,13 +90,15 @@ namespace back_end.Repositories
                 await _context.Database.BeginTransactionAsync();
             try
             {
-                Topic? topic = await _context.Topics.FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted);
-                if (topic == null)
+                Vocabolury? vocabolury = await _context.Vocaboluries.FirstOrDefaultAsync(
+                    v =>v.Id == id && !v.IsDeleted
+                );
+                if (vocabolury == null)
                 {
                     await transaction.RollbackAsync();
                     return false;
                 }
-                topic.IsDeleted = true;
+                vocabolury.IsDeleted = true;
                 var result = await _context.SaveChangesAsync();
                 if (result <= 0)
                 {
@@ -100,13 +115,13 @@ namespace back_end.Repositories
             }
         }
 
-        public async Task<bool> UpdateAsync(Topic topic)
+        public async Task<bool> UpdateAsync(Vocabolury vocabolury)
         {
             await using var transaction =
                 await _context.Database.BeginTransactionAsync();
             try
             {
-                _context.Topics.Update(topic);
+                _context.Vocaboluries.Update(vocabolury);
                 var result = await _context.SaveChangesAsync();
                 if (result <= 0)
                 {
@@ -121,19 +136,6 @@ namespace back_end.Repositories
                 await transaction.RollbackAsync();
                 throw;
             }
-        }
-
-        public async Task<bool> IsTopicBelongsToUserAsync(Guid topicId, Guid userId)
-        {
-            return await _context.Topics
-                .AnyAsync(t =>
-                    t.Id == topicId &&
-                    !t.IsDeleted &&
-                    (
-                        t.Visibility == Enums.Visibility.Public ||
-                        t.Folder.UserId == userId
-                    )
-                );
         }
     }
 }

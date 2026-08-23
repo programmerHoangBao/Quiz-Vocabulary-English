@@ -14,7 +14,7 @@ namespace back_end.Models
         [Required]
         [MaxLength(255)]
         public string Meaning { get; set; } = string.Empty;
-        public PartOfSpeech PartOfSpeech { get; set; }
+        public PartOfSpeech? PartOfSpeech { get; set; }
         [MaxLength(255)]
         public string? ExampleEn { get; set; }
         [MaxLength(255)]

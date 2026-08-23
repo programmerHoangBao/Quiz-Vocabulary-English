@@ -24,5 +24,13 @@
         public static readonly ErrorRecord TopicUpdateFailed = new("E018", "Topic update failed!", StatusCodes.Status400BadRequest);
         public static readonly ErrorRecord TopicDeleteFailed = new("E018", "Topic delete failed!", StatusCodes.Status400BadRequest);
         public static readonly ErrorRecord TopicNotFound = new("E019", "Topic not found!", StatusCodes.Status404NotFound);
+        public static readonly ErrorRecord InvalidFile = new("E020", "Your file is invalid!", StatusCodes.Status400BadRequest);
+        public static readonly ErrorRecord FileTooLarge = new("E021", "Your file is too large!", StatusCodes.Status400BadRequest);
+        public static readonly ErrorRecord InvalidFileFormat = new("E022", "Your file is not in the correct format!", StatusCodes.Status400BadRequest);
+        public static readonly ErrorRecord VocaboluryCreationFailed = new("E023", "Vocabolury create failed!", StatusCodes.Status400BadRequest);
+        public static readonly ErrorRecord VocaboluryNotFound = new("E024", "Vocabolury not found!", StatusCodes.Status404NotFound);
+        public static readonly ErrorRecord VocaboluryUpdateFailed = new("E025", "Vocabolury updates failed!", StatusCodes.Status400BadRequest);
+        public static readonly ErrorRecord VocaboluryDeleteFailed = new("E026", "Vocabolury deletes failed!", StatusCodes.Status400BadRequest);
+
     }
 }
