@@ -2,6 +2,7 @@
 using back_end.DTOs;
 using back_end.DTOs.Vocabolury.Requests;
 using back_end.DTOs.Vocabolury.Responses;
+using back_end.Enums;
 using back_end.Exceptions;
 using back_end.Models;
 using back_end.Records;
@@ -90,7 +91,7 @@ namespace back_end.Services
             int pageNumber, 
             int pageSize)
         {
-          Guid? currentUserId = _currentUserService.UserId ??
+            Guid? currentUserId = _currentUserService.UserId ??
                 throw new BusinessException(ErrorRecord.Unauthorized);
             Topic? topic = await _topicRepository.GetTopicByIdAsync(topicId);
             if (topic == null || topic.IsDeleted)
@@ -156,6 +157,106 @@ namespace back_end.Services
                 MessageRecord.GetVocaboluryByIdSuccess,
                 response
             );
+        }
+
+        public async Task<ApiResponse<object?>> ImportAsync(Guid topicId, IFormFile file)
+        {
+            Guid? currentUserId = _currentUserService.UserId ??
+                throw new BusinessException(ErrorRecord.Unauthorized);
+            Topic? topic = await _topicRepository.GetTopicByIdAsync(topicId);
+            if (topic == null || topic.IsDeleted)
+            {
+                throw new BusinessException(ErrorRecord.TopicNotFound);
+            }
+            bool isTopicBelongsToUser = await _topicRepository.IsTopicBelongsToUserAsync(
+                topicId,
+                currentUserId.Value
+            );
+
+            if (!isTopicBelongsToUser)
+            {
+                throw new BusinessException(ErrorRecord.Forbidden);
+            }
+            var rows = await _fileService.ParseAsync(file);
+            var response = new ImportVocabularyResponse{ TotalRows = rows.Count };
+            var vocabularies = new List<Vocabolury>();
+
+            for (int i = 0; i < rows.Count; i++)
+            {
+                var row = rows[i];
+                var rowNumber = i + 2;
+                if (string.IsNullOrWhiteSpace(row.Word))
+                {
+                    response.Errors.Add(new ImportVocabularyError
+                    {
+                        Row = rowNumber,
+                        Word = row.Word,
+                        Error = "Word is required"
+                    });
+
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(row.Meaning))
+                {
+                    response.Errors.Add(new ImportVocabularyError
+                    {
+                        Row = rowNumber,
+                        Word = row.Word,
+                        Error = "Meaning is required"
+                    });
+
+                    continue;
+                }
+
+                PartOfSpeech? partOfSpeech = null;
+
+                if (!string.IsNullOrWhiteSpace(row.PartOfSpeech))
+                {
+                    if (!Enum.TryParse<PartOfSpeech>(
+                        row.PartOfSpeech,
+                        true,
+                        out var parsedPartOfSpeech))
+                    {
+                        response.Errors.Add(new ImportVocabularyError
+                        {
+                            Row = rowNumber,
+                            Word = row.Word,
+                            Error = $"Invalid PartOfSpeech: {row.PartOfSpeech}"
+                        });
+
+                        continue;
+                    }
+
+                    partOfSpeech = parsedPartOfSpeech;
+                }
+
+                vocabularies.Add(new Vocabolury
+                {
+                    Word = row.Word,
+                    Meaning = row.Meaning,
+                    PartOfSpeech = partOfSpeech,
+                    ExampleEn = row.ExampleEn,
+                    ExampleVn = row.ExampleVn,
+                    IpaUk = row.IpaUk,
+                    IpaUs = row.IpaUs,
+                    TopicId = topicId
+                });
+            }
+
+            if (vocabularies.Count > 0)
+            {
+                await _vocaboluryRepository
+                    .AddRangeAsync(vocabularies);
+            }
+
+            response.SuccessCount = vocabularies.Count;
+            response.FailedCount = response.Errors.Count;
+
+            return ApiResponse<object?>.MessageResponse(
+                    MessageRecord.ImportFileSuccesfully,
+                    response
+                );
         }
 
         public async Task<ApiResponse<object?>> SoftDeleteById(Guid id)

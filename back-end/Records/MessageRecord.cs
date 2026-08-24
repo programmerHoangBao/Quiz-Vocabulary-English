@@ -21,5 +21,6 @@
         public static readonly MessageRecord GetVocaboluryByIdSuccess = new("S016", "Get vocabolury by id successfully!", StatusCodes.Status200OK);
         public static readonly MessageRecord VocaboluryUpdateSuccess = new("S017", "Vocabolury updates successfully!", StatusCodes.Status200OK);
         public static readonly MessageRecord VocaboluryDeleteSuccess = new("S018", "Vocabolury deletes successfully!", StatusCodes.Status200OK);
+        public static readonly MessageRecord ImportFileSuccesfully = new("S019", "Import file successfully!", StatusCodes.Status200OK);
     }
 }

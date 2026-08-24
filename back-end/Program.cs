@@ -11,7 +11,6 @@ using back_end.RabbitMQ;
 using Microsoft.Extensions.Options;
 using back_end.Middleware;
 using back_end.Profiles;
-using Microsoft.AspNetCore.Hosting;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);

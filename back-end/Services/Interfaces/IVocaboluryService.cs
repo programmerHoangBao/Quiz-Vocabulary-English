@@ -11,5 +11,9 @@ namespace back_end.Services.Interfaces
         Task<ApiResponse<VocaboluryResponse?>> CreateVocabolury(CreateVocaboluryRequest req);
         Task<ApiResponse<object?>> UpdateVocabolury(UpdateVocaboluryRequest req);
         Task<ApiResponse<object?>> SoftDeleteById(Guid id);
+        Task<ApiResponse<object?>> ImportAsync(
+            Guid topicId,
+            IFormFile file
+        );
     }
 }

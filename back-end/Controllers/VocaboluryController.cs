@@ -52,5 +52,16 @@ namespace back_end.Controllers
             var response = await _vocaboluryService.GetVocaboluriesByTopicId(topicId, pageNumber, pageSize);
             return StatusCode(response.HttpStatusCode, response);
         }
+
+        [HttpPost("import")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> ImportVocaboluryToFile(
+            [FromForm] Guid topicId, 
+            IFormFile file
+        )
+        {
+            var result = await _vocaboluryService.ImportAsync(topicId, file);
+            return StatusCode(result.HttpStatusCode, result);
+        }
     }
 }
