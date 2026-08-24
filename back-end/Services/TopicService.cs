@@ -7,7 +7,6 @@ using back_end.Models;
 using back_end.Records;
 using back_end.Repositories.Interfaces;
 using back_end.Services.Interfaces;
-using Org.BouncyCastle.Ocsp;
 
 namespace back_end.Services
 {
