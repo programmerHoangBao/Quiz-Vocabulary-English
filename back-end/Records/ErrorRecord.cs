@@ -31,6 +31,7 @@
         public static readonly ErrorRecord VocaboluryNotFound = new("E024", "Vocabolury not found!", StatusCodes.Status404NotFound);
         public static readonly ErrorRecord VocaboluryUpdateFailed = new("E025", "Vocabolury updates failed!", StatusCodes.Status400BadRequest);
         public static readonly ErrorRecord VocaboluryDeleteFailed = new("E026", "Vocabolury deletes failed!", StatusCodes.Status400BadRequest);
+        public static readonly ErrorRecord InvalidGoogleToken = new("E027", "Invalid google token!", StatusCodes.Status400BadRequest);
 
     }
 }

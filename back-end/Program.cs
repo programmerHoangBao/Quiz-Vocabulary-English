@@ -43,11 +43,13 @@ builder.Services.Configure<AppSetting>(builder.Configuration.GetSection(AppSetti
 builder.Services.Configure<SecuritySetting>(builder.Configuration.GetSection(SecuritySetting.SectionName));
 builder.Services.Configure<SmtpSetting>(builder.Configuration.GetSection(SmtpSetting.SectionName));
 builder.Services.Configure<RabbitMQSetting>(builder.Configuration.GetSection(RabbitMQSetting.SectionName));
+builder.Services.Configure<GoogleSetting>(builder.Configuration.GetSection(GoogleSetting.SectionName));
 
 builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<AppSetting>>().Value);
 builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<SecuritySetting>>().Value);
 builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<SmtpSetting>>().Value);
 builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<RabbitMQSetting>>().Value);
+builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<GoogleSetting>>().Value);
 
 //Add scoped for repository
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -68,6 +70,7 @@ builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<ITopicService, TopicService>();
 builder.Services.AddScoped<IVocaboluryService, VocaboluryService>();
 builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 
 //Background Services
 builder.Services.AddHostedService<ExpiredUserCleanupService>();

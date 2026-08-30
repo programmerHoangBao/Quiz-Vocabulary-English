@@ -1,4 +1,5 @@
-﻿using back_end.Configurations.Settings;
+﻿using AutoMapper;
+using back_end.Configurations.Settings;
 using back_end.DTOs;
 using back_end.DTOs.Auth.Requests;
 using back_end.DTOs.Auth.Responses;
@@ -23,18 +24,20 @@ namespace back_end.Services
         private readonly IJwtService _jwtService;
         private readonly IRefreshTokenService _refreshTokenService;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
-        private readonly ILogger<AuthService> _logger;
+        private readonly IGoogleAuthService _googleAuthService;
+        private readonly IMapper _mapper;
 
         public AuthService(
-            IUserRepository userRepository, 
-            IPasswordHasherService passwordHasher, 
+            IUserRepository userRepository,
+            IPasswordHasherService passwordHasher,
             IOptions<AppSetting> appOptions,
             IOptions<SecuritySetting> securityOptions,
             IRabbitMqPublisher rabbitMqPublisher,
             IJwtService jwtService,
             IRefreshTokenService refreshTokenService,
             IRefreshTokenRepository refreshTokenRepository,
-            ILogger<AuthService> logger
+            IGoogleAuthService googleAuthService,
+            IMapper mapper
         ) 
         {
             _userRepository = userRepository;
@@ -45,7 +48,8 @@ namespace back_end.Services
             _jwtService = jwtService;
             _refreshTokenService = refreshTokenService;
             _refreshTokenRepository = refreshTokenRepository;
-            _logger = logger;
+            _googleAuthService = googleAuthService;
+            _mapper = mapper;
         }
 
         private static string GenerateOtp()
@@ -53,6 +57,68 @@ namespace back_end.Services
             var random = new Random();
             int otpValue = random.Next(0, 1000000);
             return otpValue.ToString("D6");
+        }
+
+        public async Task<ApiResponse<LoginResponse>> GoogleLoginAsync(string idToken)
+        {
+            GoogleUserInfo? googleUser =
+                await _googleAuthService.VerifyTokenAsync(idToken);
+            if (googleUser == null)
+            {
+                throw new BusinessException(ErrorRecord.InvalidGoogleToken);
+            }
+            User? user = await _userRepository.GetByGoogleIdAsync(googleUser.GoogleId);
+            if (user == null)
+            {
+                user = await _userRepository.GetUserByEmailAsync(googleUser.Email);
+                if (user != null)
+                {
+                    throw new BusinessException(ErrorRecord.UserExist);
+                }
+                user = new User
+                {
+                    Id = new Guid(),
+                    Email = googleUser.Email,
+                    Name = googleUser.Name,
+                    GoogleId = googleUser.GoogleId,
+                    AvatarUrl = googleUser.AvatarUrl,
+                    AuthProvider = Enums.AuthProvider.Google,
+                    IsVerified = true,
+                    Role = Enums.RoleUser.User,
+                    Password = null,
+                    IsDeleted = false,
+                };
+                bool isCreted = await _userRepository.AddAsync(user);
+                if (!isCreted)
+                {
+                    throw new BusinessException(ErrorRecord.RegisterFailed);
+                }
+            }
+            LoginUserProjection loginUser = _mapper.Map<LoginUserProjection>(user);
+            string accessToken = _jwtService.GenerateAccessToken(loginUser);
+            string refreshToken = _refreshTokenService.GenerateToken();
+            string refreshTokenHash = _refreshTokenService.HashToken(refreshToken);
+            var refreshTokenEntity = new RefreshToken
+            {
+                UserId = loginUser.Id,
+                TokenHash = refreshTokenHash,
+                ExpiresAt = DateTime.UtcNow.AddDays(_securitySetting.RefreshTokenExpirationDays)
+            };
+            bool isSaveRefreshToken = await _refreshTokenRepository.AddAsync(refreshTokenEntity);
+            if (!isSaveRefreshToken)
+            {
+                throw new BusinessException(ErrorRecord.LoginFailed);
+            }
+            LoginResponse loginResponse = new LoginResponse
+            {
+                UserId = loginUser.Id,
+                AccessToken = accessToken,
+                ExpiresIn = _securitySetting.AccessTokenExpirationMinutes * 60,
+            };
+            return ApiResponse<LoginResponse>.MessageResponse(
+                MessageRecord.LoginSuccess,
+                loginResponse
+            );
         }
 
         public async Task<ApiResponse<LoginResponse>> LoginAsync(LoginRequest req)
@@ -89,10 +155,14 @@ namespace back_end.Services
             }
             LoginResponse loginResponse = new LoginResponse
             {
+                UserId = userLogin.Id,
                 AccessToken = accessToken,
                 ExpiresIn = _securitySetting.AccessTokenExpirationMinutes * 60,
             };
-            return ApiResponse<LoginResponse>.MessageResponse(MessageRecord.LoginSuccess, loginResponse);
+            return ApiResponse<LoginResponse>.MessageResponse(
+                MessageRecord.LoginSuccess, 
+                loginResponse
+            );
         }
 
         public async Task<ApiResponse<object?>> RegisterAsync(RegisterRequest req)

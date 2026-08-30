@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using back_end.DTOs.Folder.Requests;
 using back_end.DTOs.Folder.Responses;
+using back_end.DTOs.Projections;
 using back_end.DTOs.Topic.Requests;
 using back_end.DTOs.Topic.Responses;
 using back_end.DTOs.Vocabolury.Requests;
@@ -21,6 +22,7 @@ namespace back_end.Profiles
             CreateMap<CreateVocaboluryRequest, Topic>();
             CreateMap<UpdateVocaboluryRequest, Topic>();
             CreateMap<Topic, TopicResponse>();
+            CreateMap<User, LoginUserProjection>();
         }
     }
 }

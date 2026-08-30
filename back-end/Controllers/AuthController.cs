@@ -1,4 +1,6 @@
-﻿using back_end.DTOs.Auth.Requests;
+﻿using back_end.DTOs;
+using back_end.DTOs.Auth.Requests;
+using back_end.DTOs.Auth.Responses;
 using back_end.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -33,6 +35,13 @@ namespace back_end.Controllers
         public async Task<IActionResult> Login([FromBody] LoginRequest req)
         {
             var result = await _authService.LoginAsync(req);
+            return StatusCode(result.HttpStatusCode, result);
+        }
+
+        [HttpPost("signin-google")]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest req)
+        {
+            var result = await _authService.GoogleLoginAsync(req.IdToken);
             return StatusCode(result.HttpStatusCode, result);
         }
     }
