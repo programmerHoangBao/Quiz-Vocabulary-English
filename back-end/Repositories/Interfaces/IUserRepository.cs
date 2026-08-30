@@ -11,5 +11,6 @@ namespace back_end.Repositories.Interfaces
         Task<bool> UpdateAsync(User user);
         Task<LoginUserProjection?> GetUserForLoginAsync(string email);
         Task<User?> GetUserByIdAndIsDeleteFalse(Guid userId);
+        Task<User?> GetByGoogleIdAsync(string googleId);
     }
 }

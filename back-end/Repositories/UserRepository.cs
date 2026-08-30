@@ -110,5 +110,12 @@ namespace back_end.Repositories
                 throw;
             }
         }
+        public async Task<User?> GetByGoogleIdAsync(string googleId)
+        {
+            return await _context.Users
+                .FirstOrDefaultAsync(u =>
+                    u.GoogleId == googleId &&
+                    !u.IsDeleted);
+        }
     }
 }

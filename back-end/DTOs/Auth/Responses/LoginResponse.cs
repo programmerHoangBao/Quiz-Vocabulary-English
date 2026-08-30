@@ -2,6 +2,7 @@
 {
     public class LoginResponse
     {
+        public Guid UserId { get; set; }
         public string AccessToken { get; set; } = string.Empty;
         public int ExpiresIn { get; set; }
     }
