@@ -113,6 +113,7 @@ namespace back_end.Services
             {
                 UserId = loginUser.Id,
                 AccessToken = accessToken,
+                RefreshToken = refreshToken,
                 ExpiresIn = _securitySetting.AccessTokenExpirationMinutes * 60,
             };
             return ApiResponse<LoginResponse>.MessageResponse(
@@ -157,10 +158,64 @@ namespace back_end.Services
             {
                 UserId = userLogin.Id,
                 AccessToken = accessToken,
+                RefreshToken = refreshToken,
                 ExpiresIn = _securitySetting.AccessTokenExpirationMinutes * 60,
             };
             return ApiResponse<LoginResponse>.MessageResponse(
                 MessageRecord.LoginSuccess, 
+                loginResponse
+            );
+        }
+
+        public async Task<ApiResponse<LoginResponse>> RefreshTokenAsync(RefreshTokenRequest req)
+        {
+            string tokenHash = _refreshTokenService.HashToken(req.RefreshToken);
+            RefreshToken? refreshToken = await _refreshTokenRepository.GetByTokenHashAsync(tokenHash);
+            if (refreshToken == null)
+            {
+                throw new BusinessException(ErrorRecord.LoginFailed);
+            }
+            if (refreshToken.ExpiresAt <= DateTime.UtcNow)
+            {
+                throw new BusinessException(ErrorRecord.LoginFailed);
+            }
+            if (refreshToken.User == null || refreshToken.User.IsDeleted)
+            {
+                throw new BusinessException(ErrorRecord.LoginFailed);
+            }
+            LoginUserProjection? userLogin = await _userRepository.GetUserForLoginAsync(refreshToken.User.Email);
+            if (userLogin == null)
+            {
+                throw new BusinessException(ErrorRecord.UserNotFound);
+            }
+            string accessToken = _jwtService.GenerateAccessToken(userLogin);
+            string newRefreshToken = _refreshTokenService.GenerateToken();
+            string newRefreshTokenHash = _refreshTokenService.HashToken(newRefreshToken);
+            bool isRevoked = await _refreshTokenRepository.RevokeAsync(refreshToken.Id);
+            if (!isRevoked)
+            {
+                throw new BusinessException(ErrorRecord.LoginFailed);
+            }
+            var newRefreshTokenEntity = new RefreshToken
+            {
+                UserId = userLogin.Id,
+                TokenHash = newRefreshTokenHash,
+                ExpiresAt = DateTime.UtcNow.AddDays(_securitySetting.RefreshTokenExpirationDays)
+            };
+            bool isSaveRefreshToken = await _refreshTokenRepository.AddAsync(newRefreshTokenEntity);
+            if (!isSaveRefreshToken)
+            {
+                throw new BusinessException(ErrorRecord.LoginFailed);
+            }
+            LoginResponse loginResponse = new LoginResponse
+            {
+                UserId = userLogin.Id,
+                AccessToken = accessToken,
+                RefreshToken = newRefreshToken,
+                ExpiresIn = _securitySetting.AccessTokenExpirationMinutes * 60,
+            };
+            return ApiResponse<LoginResponse>.MessageResponse(
+                MessageRecord.LoginSuccess,
                 loginResponse
             );
         }
