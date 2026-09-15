@@ -259,6 +259,32 @@ namespace back_end.Services
                 );
         }
 
+        public async Task<ApiResponse<object?>> SoftDeleteAllVocaboluryAsync(Guid topicId)
+        {
+            Guid? currentUserId = _currentUserService.UserId ??
+                throw new BusinessException(ErrorRecord.Unauthorized);
+            Topic? topic = await _topicRepository.GetTopicByIdAsync(topicId);
+            if (topic == null || topic.IsDeleted)
+            {
+                throw new BusinessException(ErrorRecord.TopicNotFound);
+            }
+            bool isTopicBelongsToUser = await _topicRepository.IsTopicBelongsToUserAsync(
+                topicId,
+                currentUserId.Value
+            );
+
+            if (!isTopicBelongsToUser)
+            {
+                throw new BusinessException(ErrorRecord.Forbidden);
+            }
+            bool isDeleted = await _vocaboluryRepository.SoftDeleteAllVocaboluryAsync(topicId);
+            if (!isDeleted)
+            {
+                throw new BusinessException(ErrorRecord.VocaboluryDeleteFailed);
+            }
+            return ApiResponse<object?>.MessageResponse(MessageRecord.VocaboluryDeleteSuccess);
+        }
+
         public async Task<ApiResponse<object?>> SoftDeleteById(Guid id)
         {
             Guid? currentUserId = _currentUserService.UserId ??

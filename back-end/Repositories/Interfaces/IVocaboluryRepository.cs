@@ -14,5 +14,6 @@ namespace back_end.Repositories.Interfaces
         Task<bool> UpdateAsync(Vocabolury vocabolury);
         Task<bool> SoftDeleteByIdAsync(Guid id);
         Task<int> AddRangeAsync(List<Vocabolury> vocaboluries);
+        Task<bool> SoftDeleteAllVocaboluryAsync(Guid topicId);
     }
 }

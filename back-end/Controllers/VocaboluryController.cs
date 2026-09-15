@@ -63,5 +63,12 @@ namespace back_end.Controllers
             var result = await _vocaboluryService.ImportAsync(topicId, file);
             return StatusCode(result.HttpStatusCode, result);
         }
+
+        [HttpDelete("topic/{topicId}")]
+        public async Task<IActionResult> SoftDeleteAllVocabolury(Guid topicId)
+        {
+            var result = await _vocaboluryService.SoftDeleteAllVocaboluryAsync(topicId);
+            return StatusCode(result.HttpStatusCode, result);
+        }
     }
 }
