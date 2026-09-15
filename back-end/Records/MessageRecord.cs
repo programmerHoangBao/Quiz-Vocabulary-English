@@ -22,5 +22,9 @@
         public static readonly MessageRecord VocaboluryUpdateSuccess = new("S017", "Vocabolury updates successfully!", StatusCodes.Status200OK);
         public static readonly MessageRecord VocaboluryDeleteSuccess = new("S018", "Vocabolury deletes successfully!", StatusCodes.Status200OK);
         public static readonly MessageRecord ImportFileSuccesfully = new("S019", "Import file successfully!", StatusCodes.Status200OK);
+        public static readonly MessageRecord CreateVocabularyProgressSuccess = new("S020", "Create vocabulary progress successfully!", StatusCodes.Status201Created);
+        public static readonly MessageRecord GetDueVocabulariesSuccess = new("S021", "Get due vocabularies successfully!", StatusCodes.Status200OK);
+        public static readonly MessageRecord ConvertTextToSpeechSuccess = new("S022", "Convert text to speech successfully!", StatusCodes.Status200OK);
+        public static readonly MessageRecord SubmitAnswerSuccess = new("S023", "Submit answer successfully!", StatusCodes.Status200OK);
     }
 }

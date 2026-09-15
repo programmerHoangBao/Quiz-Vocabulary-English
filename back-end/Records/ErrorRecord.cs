@@ -32,6 +32,9 @@
         public static readonly ErrorRecord VocaboluryUpdateFailed = new("E025", "Vocabolury updates failed!", StatusCodes.Status400BadRequest);
         public static readonly ErrorRecord VocaboluryDeleteFailed = new("E026", "Vocabolury deletes failed!", StatusCodes.Status400BadRequest);
         public static readonly ErrorRecord InvalidGoogleToken = new("E027", "Invalid google token!", StatusCodes.Status400BadRequest);
-
+        public static readonly ErrorRecord VocabularyProgressAlreadyExists = new("E028", "Vocabulary progress already exists!", StatusCodes.Status409Conflict);
+        public static readonly ErrorRecord CreateVocabularyProgressFailed = new("E029", "Create vocabulary progress failed!", StatusCodes.Status400BadRequest);
+        public static readonly ErrorRecord ConvertTextToSpeechFailed = new("E030", "Convert text to speech failed!", StatusCodes.Status400BadRequest);
+        public static readonly ErrorRecord SubmitAnswerFailed = new("E031", "Submit answer failed!", StatusCodes.Status400BadRequest);
     }
 }

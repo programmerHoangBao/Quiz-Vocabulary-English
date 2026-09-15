@@ -15,5 +15,6 @@ namespace back_end.Services.Interfaces
             Guid topicId,
             IFormFile file
         );
+        Task<ApiResponse<object?>> SoftDeleteAllVocaboluryAsync(Guid topicId);
     }
 }

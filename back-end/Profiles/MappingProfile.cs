@@ -5,6 +5,8 @@ using back_end.DTOs.Projections;
 using back_end.DTOs.Topic.Requests;
 using back_end.DTOs.Topic.Responses;
 using back_end.DTOs.Vocabolury.Requests;
+using back_end.DTOs.VocabularyProgress.Requests;
+using back_end.DTOs.VocabularyProgress.Responses;
 using back_end.Models;
 
 namespace back_end.Profiles
@@ -23,6 +25,8 @@ namespace back_end.Profiles
             CreateMap<UpdateVocaboluryRequest, Topic>();
             CreateMap<Topic, TopicResponse>();
             CreateMap<User, LoginUserProjection>();
+            CreateMap<CreateVocabularyProgressRequest, VocabularyProgress>();
+            CreateMap<VocabularyProgress, VocabularyProgressResponse>();
         }
     }
 }

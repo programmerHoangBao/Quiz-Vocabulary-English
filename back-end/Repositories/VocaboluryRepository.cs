@@ -84,6 +84,31 @@ namespace back_end.Repositories
             return await _context.Vocaboluries.FirstOrDefaultAsync(v => v.Id == id);
         }
 
+        public async Task<bool> SoftDeleteAllVocaboluryAsync(Guid topicId)
+        {
+            await using var transaction =
+                await _context.Database.BeginTransactionAsync();
+            try
+            {
+                _context.Vocaboluries.Where(v => v.TopicId == topicId && !v.IsDeleted)
+                    .ToList()
+                    .ForEach(v => v.IsDeleted = true);
+                var result = await _context.SaveChangesAsync();
+                if (result <= 0)
+                {
+                    await transaction.RollbackAsync();
+                    return false;
+                }
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
         public async Task<bool> SoftDeleteByIdAsync(Guid id)
         {
             await using var transaction =

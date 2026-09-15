@@ -44,6 +44,7 @@ builder.Services.Configure<SecuritySetting>(builder.Configuration.GetSection(Sec
 builder.Services.Configure<SmtpSetting>(builder.Configuration.GetSection(SmtpSetting.SectionName));
 builder.Services.Configure<RabbitMQSetting>(builder.Configuration.GetSection(RabbitMQSetting.SectionName));
 builder.Services.Configure<GoogleSetting>(builder.Configuration.GetSection(GoogleSetting.SectionName));
+builder.Services.Configure<ElevenLabsSetting>(builder.Configuration.GetSection(ElevenLabsSetting.SectionName));
 
 builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<AppSetting>>().Value);
 builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<SecuritySetting>>().Value);
@@ -57,6 +58,7 @@ builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped<IFolderRepository, FolderRepository>();
 builder.Services.AddScoped<ITopicRepository, TopicRepository>();
 builder.Services.AddScoped<IVocaboluryRepository, VocaboluryRepository>();
+builder.Services.AddScoped<IVocabularyProgressRepository, VocabularyProgressRepository>();
 
 //Add scoped for services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -71,10 +73,13 @@ builder.Services.AddScoped<ITopicService, TopicService>();
 builder.Services.AddScoped<IVocaboluryService, VocaboluryService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
+builder.Services.AddScoped<IVocabularyProgressService, VocabularyProgressService>();
+builder.Services.AddHttpClient<ISpeechService, SpeechService>();
 
 //Background Services
-builder.Services.AddHostedService<ExpiredUserCleanupService>();
-builder.Services.AddHostedService<RabbitMqConsumer>();
+//builder.Services.AddHostedService<ExpiredUserCleanupService>();
+builder.Services.AddHostedService<EmailConsumer>();
+builder.Services.AddHostedService<SubmitAnswerConsumer>();
 
 // Auto mapper
 builder.Services.AddAutoMapper(_ => { }, typeof(MappingProfile).Assembly);

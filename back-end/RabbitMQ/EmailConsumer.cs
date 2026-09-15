@@ -10,14 +10,14 @@ using System.Text.Json;
 
 namespace back_end.RabbitMQ
 {
-    public class RabbitMqConsumer : BackgroundService
+    public class EmailConsumer : BackgroundService
     {
-        private readonly ILogger<RabbitMqConsumer> _logger;
+        private readonly ILogger<EmailConsumer> _logger;
         private readonly IRabbitMqPublisher _rabbitMqPublisher;
         private readonly RabbitMQSetting _rabbitMqSetting;
         private readonly IEmailService _emailService;
 
-        public RabbitMqConsumer(ILogger<RabbitMqConsumer> logger, IRabbitMqPublisher rabbitMqPublisher, IOptions<RabbitMQSetting> rabbitMqSetting, IEmailService emailService)
+        public EmailConsumer(ILogger<EmailConsumer> logger, IRabbitMqPublisher rabbitMqPublisher, IOptions<RabbitMQSetting> rabbitMqSetting, IEmailService emailService)
         {
             _logger = logger;
             _rabbitMqPublisher = rabbitMqPublisher;
@@ -37,7 +37,13 @@ namespace back_end.RabbitMQ
                 };
                 var connection = await factory.CreateConnectionAsync();
                 var channel = await connection.CreateChannelAsync();
-                await channel.QueueDeclareAsync(queue: "send_otp_email", durable: true, exclusive: false, autoDelete: false, arguments: null);
+                await channel.QueueDeclareAsync(
+                    queue: "send_otp_email", 
+                    durable: true, 
+                    exclusive: false, 
+                    autoDelete: false, 
+                    arguments: null
+                );
                 var consumer = new AsyncEventingBasicConsumer(channel);
                 consumer.ReceivedAsync += async (sender, args) =>
                 {
